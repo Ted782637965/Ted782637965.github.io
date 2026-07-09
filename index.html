@@ -8,11 +8,209 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="./assets/index-Cb8px4Af.js"></script>
-    <script src="./data-loader.js"></script>
+    <script type="module" crossorigin src="./assets/index-Cb8px4Af.js?v=2"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-BOXCF9Xa.css">
+    <style>
+      .bo-guide-btn {
+        position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+        width: 56px; height: 56px; border-radius: 50%;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white; border: none; cursor: pointer;
+        font-size: 22px; box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        display: flex; align-items: center; justify-content: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .bo-guide-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+      .bo-guide-panel {
+        position: fixed; top: 0; right: -420px; width: 400px; max-width: 90vw;
+        height: 100vh; background: #fff; z-index: 10000;
+        box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+        transition: right 0.3s ease; display: flex; flex-direction: column;
+        font-family: 'Noto Sans SC', 'Inter', sans-serif;
+      }
+      .bo-guide-panel.open { right: 0; }
+      .bo-guide-header {
+        padding: 16px 20px; background: linear-gradient(135deg, #10b981, #059669);
+        color: white; display: flex; align-items: center; justify-content: space-between;
+      }
+      .bo-guide-header h3 { margin: 0; font-size: 18px; font-weight: 600; }
+      .bo-guide-close {
+        background: none; border: none; color: white; font-size: 24px; cursor: pointer;
+        width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+        border-radius: 50%; transition: background 0.2s;
+      }
+      .bo-guide-close:hover { background: rgba(255,255,255,0.2); }
+      .bo-guide-search {
+        padding: 12px 16px; border-bottom: 1px solid #e5e7eb;
+      }
+      .bo-guide-search input {
+        width: 100%; padding: 10px 14px; border: 1px solid #d1d5db;
+        border-radius: 8px; font-size: 14px; outline: none;
+        font-family: inherit; box-sizing: border-box;
+      }
+      .bo-guide-search input:focus { border-color: #10b981; }
+      .bo-guide-list {
+        flex: 1; overflow-y: auto; padding: 12px 0;
+      }
+      .bo-guide-zone { margin-bottom: 8px; }
+      .bo-guide-zone-title {
+        padding: 8px 16px; font-size: 13px; font-weight: 600;
+        color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;
+        background: #f9fafb;
+      }
+      .bo-guide-item {
+        padding: 10px 20px; cursor: pointer; font-size: 14px;
+        color: #374151; border-left: 3px solid transparent;
+        transition: all 0.15s;
+      }
+      .bo-guide-item:hover {
+        background: #ecfdf5; border-left-color: #10b981; color: #059669;
+      }
+      .bo-guide-detail {
+        flex: 1; overflow-y: auto; padding: 20px; display: none;
+      }
+      .bo-guide-detail.active { display: block; }
+      .bo-guide-detail h4 {
+        margin: 0 0 16px 0; font-size: 20px; color: #111827;
+        display: flex; align-items: center; gap: 8px;
+      }
+      .bo-guide-back {
+        display: inline-flex; align-items: center; gap: 4px;
+        color: #059669; font-size: 14px; cursor: pointer; margin-bottom: 16px;
+        padding: 6px 0; font-weight: 500;
+      }
+      .bo-guide-back:hover { color: #047857; }
+      .bo-guide-section { margin-bottom: 20px; }
+      .bo-guide-section-title {
+        font-size: 14px; font-weight: 600; color: #059669;
+        margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+      }
+      .bo-guide-section-content {
+        font-size: 13px; line-height: 1.7; color: #4b5563;
+        background: #f9fafb; padding: 12px 14px; border-radius: 8px;
+      }
+      .bo-review-item {
+        background: #f9fafb; padding: 12px 14px; border-radius: 8px;
+        margin-bottom: 10px; font-size: 13px; line-height: 1.6;
+      }
+      .bo-review-text { color: #374151; margin-bottom: 6px; }
+      .bo-review-source { color: #9ca3af; font-size: 12px; }
+      .bo-review-source a { color: #059669; text-decoration: none; }
+      .bo-review-source a:hover { text-decoration: underline; }
+      .bo-guide-overlay {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.3); z-index: 9999; display: none;
+      }
+      .bo-guide-overlay.open { display: block; }
+      @media (max-width: 640px) {
+        .bo-guide-panel { width: 100vw; right: -100vw; }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+
+    <div class="bo-guide-overlay" id="bo-guide-overlay" onclick="boCloseGuide()"></div>
+    <div class="bo-guide-panel" id="bo-guide-panel">
+      <div class="bo-guide-header">
+        <h3>地点攻略</h3>
+        <button class="bo-guide-close" onclick="boCloseGuide()">&times;</button>
+      </div>
+      <div class="bo-guide-search">
+        <input type="text" id="bo-guide-search" placeholder="搜索地点..." oninput="boSearchGuide(this.value)">
+      </div>
+      <div class="bo-guide-list" id="bo-guide-list"></div>
+      <div class="bo-guide-detail" id="bo-guide-detail"></div>
+    </div>
+    <button class="bo-guide-btn" onclick="boOpenGuide()" title="查看地点攻略">攻略</button>
+
+    <script>
+    (function() {
+      const guidesData = {"dongling-shan":{"drive":"双井→东三环→北三环→京藏高速→京蔚高速→斋堂出口→G109→江水河村，全程约2h（京蔚高速开通后大幅缩短）","transit":"地铁10号线→苹果园站→M11路/M23路→洪水口站→江水河村，全程约3.5h","time":"1-2天。单日可往返走江水河村懒人线（4-5h往返）；想登顶看日出星空建议过夜","overnight":"建议过夜。江水河村有农家院，可露营观星。次日清晨登顶看云海日出","tips":"导航到江水河村而非「东灵山」（会绕远）。带足水和防晒，山顶风大需冲锋衣。可骑马上山100-200元。7-9月高山草甸最美，可观云海"},"guanting-reservoir":{"drive":"双井→东三环→北三环→京藏高速→康庄出口→官厅水库，全程约1.5h","transit":"地铁10号线→西直门→市郊铁路S2线→延庆站→打车/公交至水库，全程约2.5h","time":"半天到1天。环湖自驾拍照2-3h，露营可住一晚","overnight":"可不过夜。如露营可选湖畔营地，看风车日落和星空","tips":"环湖公路自驾体验极佳，夕阳时分风车与落日绝美。夏季可桨板、皮划艇。周边康西草原可骑马"},"jiankou-greatwall":{"drive":"双井→东三环→北三环→京承高速→怀柔出口→怀黄路→箭扣，全程约2h","transit":"地铁10号线→东直门→916快→怀柔→H23/H24路→西栅子村，全程约3h","time":"1天。全程徒步约6-8h，建议早6点出发","overnight":"可不过夜。如体力一般可在西栅子村民宿住一晚，次日返程","tips":"野长城无门票，但有一定危险，建议穿防滑鞋、带登山杖。箭扣段最险峻，正北楼、天梯、鹰飞倒仰是经典机位。不要雨天前往"},"yudu-shan":{"drive":"双井→东三环→北三环→京藏高速→延庆→G110→玉皇庙村，全程约2h","transit":"地铁10号线→西直门→市郊铁路S2线→延庆站→打车至玉皇庙，全程约2.5h","time":"1天。徒步往返约5-6h，高海拔注意防晒","overnight":"可不过夜。周边农家院可住","tips":"北京第二高峰，山顶有高山草甸。建议走玉皇庙路线，路况较好。带足水和防风衣物，山顶温差大"},"cuandixia":{"drive":"双井→东三环→西三环→阜石路→G109→斋堂→爨底下，全程约2h","transit":"地铁10号线→苹果园→M11路→斋堂→换乘M12路→爨底下，全程约3h","time":"半天到1天。古村漫步2-3h，可搭配一线天、柏峪","overnight":"建议过夜。古村有民宿，可住一晚体验清晨的宁静，晚上看星空","tips":"门票35元含一线天、柏峪。明清古民居保存完好，「爨」字造型村落。适合拍照，建议穿民国风/复古服装。一线天道路狭窄，注意会车"},"shidu":{"drive":"双井→东三环→西三环→京昆高速→张坊出口→十渡，全程约1.5h","transit":"地铁10号线→六里桥→836路→十渡，全程约2.5h","time":"1-2天。漂流2-3h，孤山寨1-2h，蹦极体验半天","overnight":"建议过夜。十渡有农家院和民宿，可漂流后住一晚，次日去孤山寨或蹦极","tips":"夏季漂流热门，周末人多建议早到。蹦极是网红项目。拒马乐园、孤山寨、东湖港各有特色。夏天可玩水、竹筏"},"jinhai-lake":{"drive":"双井→东三环→机场高速→京平高速→平谷出口→金海湖，全程约1h","transit":"地铁10号线→三元桥→852路→平谷→平28路→金海湖，全程约2h","time":"1天。游船2h，大坝1h，周边采摘半天","overnight":"可不过夜。如想深度休闲可在碧波岛露营或住民宿","tips":"被誉为「京郊小瑞士」，碧波岛欧式草坪出片。可乘游船、快艇、皮划艇。秋季采摘平谷大桃。周末人多建议早出发"},"xiangshan":{"drive":"双井→东三环→北三环→香山路→香山，全程约40min","transit":"地铁10号线→巴沟→西郊线→香山站，全程约1h","time":"半天。登山2-3h，山顶+缆车下山约4h","overnight":"不需要。市内景点，当日往返","tips":"秋季红叶最出名（10月中下旬），但人也最多。建议工作日或早7点前到达。缆车可节省体力。碧云寺、卧佛寺可联游"},"fenghuangling":{"drive":"双井→东三环→北三环→京藏高速→北安河出口→凤凰岭，全程约1h","transit":"地铁10号线→巴沟→西郊线→万安站→打车/专16路→凤凰岭，全程约1.5h","time":"1天。北线/中线/南线各约3-4h，选一条即可","overnight":"可不过夜。附近北安河有住宿","tips":"「京西小黄山」，北线天梯最刺激，南线龙泉寺最平缓。秋季红叶很美。门票25元，建议穿防滑鞋，部分路段较陡"},"baihua-shan":{"drive":"双井→东三环→西三环→阜石路→G109→清水镇→百花山，全程约2.5h","transit":"地铁10号线→苹果园→M11路→斋堂→换乘→百花山，全程约3.5h","time":"1天。可自驾至半山腰（百花山主峰停车场），徒步2-3h到顶","overnight":"可不过夜。半山腰有宾馆，可住一晚次日看日出","tips":"北京第三高峰，高山草甸夏季野花遍地。自驾可开到半山腰，徒步路程较短。与门头沟百花山和房山白草畔是同一座山，可从两侧登山"},"haiduo-shan":{"drive":"双井→东三环→西三环→阜石路→G109→军响→碣石村，全程约2.5h","transit":"地铁10号线→苹果园→M11路→军响→打车/步行→海坨山，全程约3.5h","time":"1-2天。徒步约5-6h到顶，建议早出发","overnight":"建议过夜。海坨山是大热露营圣地，山顶草甸可扎帐篷观星看日出","tips":"北京十大经典徒步路线之一，高山草甸、云海、日出绝美。需提前下载轨迹，部分路段无信号。注意防火，不可带火种上山"},"beiling-shan":{"drive":"双井→东三环→北三环→京承高速→密云出口→溪翁庄→白龙潭，全程约1.5h","transit":"地铁10号线→三元桥→980路→密云→密8路→白龙潭，全程约2.5h","time":"1天。登山约3-4h，可搭配白龙潭水库","overnight":"可不过夜。密云城区有住宿","tips":"密云水库周边，山水相依。秋季层林尽染。可与白龙潭、黑龙潭联游"},"yunmeng-shan":{"drive":"双井→东三环→北三环→京承高速→密云城区→密关路→云蒙山，全程约2h","transit":"地铁10号线→三元桥→980路→密云→密63路→云蒙山，全程约3h","time":"1天。全程约5-6h，建议缆车上下","overnight":"可不过夜。密云城区有住宿","tips":"「京郊小黄山」，奇峰怪石、瀑布溪流。建议缆车上下节省体力，徒步路段较多。夏季避暑好去处"},"miyun-reservoir":{"drive":"双井→东三环→北三环→京承高速→密云出口→水库大坝，全程约1.5h","transit":"地铁10号线→三元桥→980路→密云→打车至水库，全程约2.5h","time":"半天。大坝拍照、周边散步1-2h","overnight":"不需要。可搭配周边景点如云蒙山、古北水镇","tips":"亚洲最大人工湖，北京重要的水源地。大坝可远眺，但不能进入核心区。周边水库鱼、柴锅炖是特色"},"longqing-canyon":{"drive":"双井→东三环→北三环→京藏高速→延庆→龙庆峡，全程约1.5h","transit":"地铁10号线→西直门→市郊铁路S2线→延庆站→打车/公交→龙庆峡，全程约2.5h","time":"半天到1天。游船约2h，爬山2-3h","overnight":"可不过夜。冬季冰灯节期间可住一晚","tips":"「塞外小三峡」，坐船游览峡谷是核心体验。冬季有冰灯节，非常壮观。可搭配八达岭联游"},"pofengling":{"drive":"双井→东三环→西三环→京昆高速→房山→坡峰岭，全程约1.5h","transit":"地铁10号线→郭公庄→地铁房山线→良乡→F15路→坡峰岭，全程约2h","time":"1天。登山约3-4h","overnight":"可不过夜。黄山店有民宿集群","tips":"北京最美红叶观赏地之一，黄栌漫山。秋季（10月中下旬）最美，但人也最多。建议工作日前往。门票30-50元（淡旺季不同）。可搭配云居寺、周口店联游"},"tanzhe-si":{"drive":"双井→东三环→西三环→阜石路→G108→潭柘寺，全程约1h","transit":"地铁10号线→西直门→地铁1号线→苹果园→M44路→潭柘寺，全程约1.5h","time":"半天。寺内游览约2-3h","overnight":"可不过夜。可搭配戒台寺、檀谷联游","tips":"「先有潭柘寺后有北京城」，北京最古老寺庙（1700年）。千年银杏秋季金黄。帝王树、毗卢阁是经典机位。门票50元。素斋值得一试"},"shihua-cave":{"drive":"双井→东三环→西三环→京昆高速→房山→石花洞，全程约1h","transit":"地铁10号线→郭公庄→地铁房山线→良乡→F43路→石花洞，全程约1.5h","time":"半天。洞内游览约2h","overnight":"不需要。可搭配坡峰岭、云居寺联游","tips":"中国四大名洞之一，地下艺术殿堂。洞内恒温13℃，夏天需带薄外套。门票70元。建议请讲解员了解地质知识。可搭配周口店、云居寺联游"},"badaling":{"drive":"双井→东三环→北三环→京藏高速→八达岭，全程约1.5h","transit":"地铁10号线→西直门→市郊铁路S2线→八达岭站，全程约2h","time":"半天到1天。长城游览约3-4h","overnight":"可不过夜。可搭配龙庆峡、世园公园联游","tips":"最知名的长城段，设施最完善。但人也最多，建议早8点前到达。缆车可节省体力。门票40元。夜游活动夏季开放"},"mutianyu-greatwall":{"drive":"双井→东三环→北三环→京承高速→怀柔→慕田峪路，全程约1.5h","transit":"地铁10号线→东直门→916快→怀柔→H23/H24路→慕田峪，全程约2.5h","time":"1天。缆车上+徒步+滑道下约4-5h","overnight":"可不过夜。如想深度体验可住北沟村瓦厂酒店","tips":"长城精华段，植被覆盖率90%，四季皆景。外国游客最爱。缆车+滑道是经典组合。门票45元，缆车/滑道另收费。建议早8点前到达，避开人流。北沟村瓦厂酒店是设计酒店，可躺看长城"},"jindong-canyon":{"drive":"双井→东三环→机场高速→京平高速→平谷→京东大峡谷，全程约1.5h","transit":"地铁10号线→三元桥→852路→平谷→平12路→京东大峡谷，全程约2.5h","time":"1天。峡谷徒步+缆车+滑道约4-5h","overnight":"可不过夜。平谷城区有住宿","tips":"北京最大峡谷，集高山、峡谷、瀑布、深潭于一体。夏季清凉，可划船、走吊桥。缆车+滑道是经典组合。门票78元"},"shilinxia":{"drive":"双井→东三环→机场高速→京平高速→平谷→胡关路→石林峡，全程约1.5h","transit":"地铁10号线→三元桥→852路→平谷→平25路→石林峡，全程约2.5h","time":"1天。全程约4-5h，UFO玻璃观景台是亮点","overnight":"可不过夜。平谷城区有住宿","tips":"七彩池+UFO玻璃观景台是网红打卡点。建议缆车上山，步行下山。门票78元，观景台另收费。周末人多建议早到"},"labagoumen":{"drive":"双井→东三环→北三环→京承高速→怀柔→G111→喇叭沟门，全程约2.5h","transit":"地铁10号线→东直门→916快→怀柔→H16路→喇叭沟门，全程约3.5h","time":"1-2天。原始森林徒步约4-5h，可看白桦林","overnight":"建议过夜。北京最北端，适合住一晚体验原始森林的宁静，秋季看白桦和红叶","tips":"北京唯一原始次生林，有白桦林、杜鹃花海。海拔较高，夏季凉爽。建议穿长衣长裤防蚊虫。门票40元"},"xishan":{"drive":"双井→东三环→北三环→香山路→西山森林公园，全程约45min","transit":"地铁10号线→巴沟→西郊线→香山站→步行→西山，全程约1h","time":"半天。登山约2-3h","overnight":"不需要。市内近郊，当日往返","tips":"与香山相邻但人更少，森林覆盖率高。鬼笑石是网红日落观景点。可俯瞰北京全景。免费入园，适合日常锻炼"},"yongding-river":{"drive":"双井→东三环→西三环→京港澳高速→卢沟桥→永定河，全程约40min","transit":"地铁10号线→西局→地铁14号线→园博园站→步行/骑行→永定河，全程约1h","time":"半天。沿河漫步+骑行约2-3h","overnight":"不需要。市内景点","tips":"北京母亲河，沿河有绿道适合骑行。可搭配卢沟桥、宛平城、园博园联游。春季河畔花开，秋季芦苇金黄"},"miaofeng-shan":{"drive":"双井→东三环→西三环→阜石路→G109→妙峰山，全程约1.5h","transit":"地铁10号线→苹果园→M5路→妙峰山，全程约2h","time":"1天。登山+寺庙约3-4h","overnight":"可不过夜。附近有农家院","tips":"京西道教名山，碧霞元君庙香火鼎盛。春季玫瑰花开（5月），秋季红叶层林尽染。妙峰山庙会（农历四月初一）是传统民俗活动。盘山路弯多，自驾注意安全"},"qingliang-valley":{"drive":"双井→东三环→北三环→京承高速→密云→密关路→清凉谷，全程约2h","transit":"地铁10号线→三元桥→980路→密云→密63路→清凉谷，全程约3h","time":"1天。瀑布+缆车+玻璃天桥约4-5h","overnight":"可不过夜。密云城区有住宿","tips":"夏季避暑圣地，瀑布群壮观。水晶长城、玻璃天桥是网红项目。建议缆车上山，步行下山。门票50元"},"zhenbiancheng":{"drive":"双井→东三环→西三环→阜石路→G109→镇边城，全程约2h","transit":"地铁10号线→苹果园→M11路→斋堂→换乘→镇边城，全程约3h","time":"1天。古城+周边登山约3-4h","overnight":"可不过夜。可搭配长峪城联游","tips":"明代边防古城，保存完好。城墙、古街、老宅有历史感。周边有长城遗址可徒步。免费参观，适合拍照。可搭配长峪城、横岭城联游"},"xiaowutai":{"drive":"双井→东三环→北三环→京藏高速→张家口→蔚县→小五台山，全程约4h","transit":"北京北站/清河站→张家口站→长途汽车→蔚县→小五台山，全程约4h","time":"2-3天。东台、西台、北台各需1天","overnight":"必须过夜。建议住2晚，扎帐篷露营","tips":"河北最高峰，华北屋脊。高山草甸、金莲花海、云海绝美。需办理登山许可证。部分路段为保护区，需提前了解开放政策。装备要专业"},"wulingshan":{"drive":"双井→东三环→京承高速→兴隆→雾灵山，全程约2.5h","transit":"地铁10号线→东直门→长途汽车→兴隆→打车→雾灵山，全程约4h","time":"1-2天","overnight":"建议过夜。山上可住宿，次日看日出云海","tips":"华北最高峰之一，有「北方黄山」之称。夏季避暑，秋季彩林。可自驾上山"},"gubei-water town":{"drive":"双井→东三环→北三环→京承高速→司马台出口→古北水镇，全程约2h","transit":"地铁10号线→东直门→980路→密云→密51路→古北水镇，全程约3h","time":"1-2天。白天逛古镇4-5h，晚上夜游司马台长城","overnight":"强烈建议过夜。古北水镇核心体验就是夜景+司马台夜游，有温泉酒店","tips":"北京最美水镇，夜景无敌。建议下午到达，晚上夜游司马台长城（需预约）。白天可逛染坊、酒坊、山顶教堂。门票140元，住宿客人有优惠"},"simatai-greatwall":{"drive":"双井→东三环→北三环→京承高速→司马台出口，全程约2h","transit":"地铁10号线→东直门→980路→密云→密51路→司马台，全程约3h","time":"半天到1天。白天登长城3-4h，夜游2h","overnight":"建议过夜。与古北水镇联游，住水镇内酒店体验最佳","tips":"全国唯一开放夜游的长城。建议白天+夜游组合，或者单独夜游（需预约）。夜景绝美，需提前在古北水镇官方渠道预约。门票40元，夜游票160元"},"baiwang-shan":{"drive":"双井→东三环→北三环→G6辅路→百望山，全程约30min","transit":"地铁10号线→巴沟→西郊线→万安站→步行/骑行→百望山，全程约1h","time":"半天。登山约1-2h，非常轻松","overnight":"不需要。市内近郊，当日往返","tips":"距市区最近的森林公园，被称为「城市氧源」。难度极低，适合亲子和老人。山顶可俯瞰颐和园和昆明湖。春季赏花、秋季观叶"},"yingshan":{"drive":"双井→东三环→北三环→京承高速→昌平→安四路→银山塔林，全程约1.5h","transit":"地铁10号线→西直门→地铁13号线→昌平站→昌31路→银山塔林，全程约2h","time":"半天到1天。塔林游览+登山约3-4h","overnight":"可不过夜。昌平城区有住宿","tips":"金代塔林遗址，北京最古老的塔群。秋季红叶最美，塔林与红叶同框是经典画面。门票20元。可搭配十三陵联游"},"tianmo-desert":{"drive":"双井→东三环→北三环→京藏高速→张家口→怀来→天漠，全程约2h","transit":"北京北站→沙城站→打车→天漠，全程约2h","time":"半天。沙漠体验+拍照约2-3h","overnight":"可不过夜。可搭配官厅水库联游","tips":"离北京最近的沙漠，有「京城小撒哈拉」之称。可滑沙、骑骆驼、越野。门票35元。风沙大，建议带口罩和墨镜。可搭配官厅水库联游"},"huangsongyu":{"drive":"双井→东三环→机场高速→京平高速→平谷→黄松峪，全程约1.5h","transit":"地铁10号线→三元桥→852路→平谷→平26路→黄松峪，全程约2.5h","time":"1天。石林峡+湖洞水+飞龙谷约4-5h","overnight":"可不过夜。可搭配金海湖联游","tips":"平谷东北部山区，有石林峡、湖洞水、飞龙谷等景点。可搭配金海湖、京东大峡谷联游。秋季采摘苹果、柿子"},"aolinpike-senlin":{"drive":"双井→东三环→北三环→奥林西路→奥林匹克森林公园，全程约30min","transit":"地铁10号线→北土城→地铁8号线→森林公园南门站，全程约30min","time":"半天。园内跑步/骑行/散步约2-3h","overnight":"不需要。市内公园","tips":"北京最大的城市公园，南北两园合计约680公顷。适合跑步、骑行、野餐。秋季银杏和火炬树最美。免费入园。南门进入最方便"},"wenyuhe-gongyuan":{"drive":"双井→东三环→北三环→京承高速→温榆河公园，全程约30min","transit":"地铁10号线→太阳宫→地铁14号线→来广营→打车/骑行→温榆河公园，全程约40min","time":"半天。园内漫步/野餐/骑行约2-3h","overnight":"不需要。市内公园","tips":"北京最大「城市绿肺」，分朝阳、顺义、昌平三区。春季油菜花海（4-5月）是网红打卡点。适合露营、骑行、亲子。免费入园"},"jiangfu-gongyuan":{"drive":"双井→东三环→姚家园路→将府公园，全程约20min","transit":"地铁10号线→亮马桥→地铁14号线→将台站→步行→将府公园，全程约30min","time":"半天。园内漫步约2h","overnight":"不需要。市内公园","tips":"北京最美铁道公园，废弃铁路+二月兰花海是经典机位。春季（4-5月）最美。免费入园，适合拍照和散步。可搭配798艺术区联游"},"dongxiaokou-senlin":{"drive":"双井→东三环→北三环→京藏高速→东小口森林公园，全程约30min","transit":"地铁10号线→惠新西街南口→地铁5号线→立水桥→地铁13号线→霍营→步行→东小口，全程约1h","time":"半天。园内跑步/骑行约2h","overnight":"不需要。市内公园","tips":"北京北部最大的郊野公园，森林覆盖率高。适合跑步、骑行、亲子。秋季彩林很美。免费入园。可搭配奥森联游"},"yongdinghe-senlin":{"drive":"双井→东三环→西三环→京港澳高速→永定河森林公园，全程约40min","transit":"地铁10号线→西局→地铁14号线→园博园站→步行/骑行→永定河公园，全程约1h","time":"半天。沿河骑行/散步约2-3h","overnight":"不需要。市内公园","tips":"永定河畔的生态公园，适合骑行、跑步、野餐。有专门的自行车道。春季花开、秋季芦苇金黄。免费入园。可搭配园博园联游"},"nanyuan-shidi":{"drive":"双井→东三环→南三环→南苑路→南苑湿地，全程约30min","transit":"地铁10号线→宋家庄→地铁8号线→和义站→步行/骑行→南苑湿地，全程约40min","time":"半天。园内漫步/观鸟约2-3h","overnight":"不需要。市内公园","tips":"北京城南最大的湿地公园，观鸟胜地。春秋两季候鸟迁徙时最佳。免费入园。可搭配南海子公园联游。需提前预约"},"yanqi-xizhan":{"drive":"双井→东三环→北三环→京承高速→怀柔→雁栖湖西路，全程约1h","transit":"地铁10号线→东直门→916快→怀柔→H11路→雁栖湖，全程约2h","time":"1天。西山步道+骑行+游船约4-5h","overnight":"建议过夜。住日出东方凯宾斯基或井邻民宿","tips":"雁栖湖核心景区，APEC会址所在地。日出东方酒店是地标建筑。西山步道免费，俯瞰全景最佳。P5停车场离步道最近。虹鳟鱼是必吃美食"},"wucai-qianshan":{"drive":"双井→东三环→机场高速→京平高速→顺义→五彩浅山，全程约1h","transit":"地铁10号线→三元桥→915路→顺义→顺15路→五彩浅山，全程约2h","time":"1天。登山步道约3-4h","overnight":"可不过夜。顺义城区有住宿","tips":"顺义浅山步道，串联多个山峰。春季赏花、秋季红叶。步道设施完善，适合全家。免费。可搭配汉石桥湿地联游"},"dayunhe-senlin":{"drive":"双井→东三环→京津高速→通州→大运河森林公园，全程约40min","transit":"地铁10号线→呼家楼→地铁6号线→通州北关→步行/骑行→大运河公园，全程约1h","time":"半天。园内骑行/散步/游船约2-3h","overnight":"可不过夜。通州城区有住宿","tips":"京杭大运河北京段，沿河绿道适合骑行。漕运码头、运河文化广场是亮点。夏季荷花盛开。免费入园。可搭配通州三庙一塔联游"},"lvxin-senlin":{"drive":"双井→东三环→京津高速→通州→城市绿心森林公园，全程约40min","transit":"地铁10号线→呼家楼→地铁6号线→郝家府→步行/骑行→绿心公园，全程约1h","time":"半天。园内骑行/跑步/野餐约2-3h","overnight":"不需要。市内公园","tips":"通州城市副中心绿肺，五大主题园区。适合骑行、跑步、亲子。有儿童游乐设施。秋季彩林很美。免费入园。可搭配大运河公园联游"},"yougu-shentan":{"drive":"双井→东三环→北三环→京承高速→怀柔出口→怀黄路→幽谷神潭，全程约1.5h","transit":"地铁10号线→东直门→916快→怀柔城区→换乘小10路/936支→幽谷神潭，全程约2.5h","time":"半天到1天。景区徒步2-3h，神潭飞瀑+石刻区游览","overnight":"可不过夜。如想深度体验可住怀柔城区或景区附近农家院","tips":"门票30-40元，学生半价。4月杏花盛开最美。景区有十二生肖石刻区和佛教石刻。夏季可戏水，带孩子的好去处。重点防火区严禁吸烟"},"yunmeng-xia":{"drive":"双井→东三环→北三环→京承高速→密云出口→密溪路→水库西线→水堡子村，全程约2h","transit":"地铁10号线→三元桥→980快→密云汽车站→密60/63/65路→水堡子站，全程约3h","time":"半天到1天。景区游览3-4h，徒步穿越至对家河需5-6h","overnight":"可不过夜。对家河有农家院，可吃饭休闲","tips":"门票20元。景区正在修路，出行前确认开放情况。峡谷碎石多，建议穿防滑鞋。最佳季节四季皆宜，秋季红叶最美。可徒步穿越白道峪-对家河-云蒙峡"},"qingliang-gu":{"drive":"双井→东三环→北三环→京承高速→密云(16出口)→水库方向→溪翁庄→石城镇→过黑龙潭直行13km→清凉谷，全程约2h","transit":"地铁10号线→三元桥→980快→密云鼓楼站→往回走30米→密63路→清凉谷站，全程约2.5h","time":"1天。全程4-5h，建议上午到达，下午4点后错峰人少","overnight":"可不过夜。景区门口有民宿和清凉山庄可住","tips":"门票50元，套票更划算（含缆车+玻璃栈道+高山漂流）。必玩：玻璃天桥、水晶长城、高山滑水3000米、天空之境。穿速干衣+运动鞋，玩水上项目备替换衣物。防晒很重要"},"tianmen-shan":{"drive":"双井→西三环→莲石路→石门营环岛→108国道→潭柘寺镇→天门山，全程约1h","transit":"地铁S1线→石厂站→换乘931路→南辛房站→步行至天门山，全程约1.5h","time":"半天。走景区石阶3h，环穿野路5h","overnight":"可不过夜。附近潭柘寺镇有民宿和酒店","tips":"废弃景区免费进入！导航到天门山东北门，路边停车。全程无商店无厕所，务必自带水和食物。建议带登山杖，部分路段碎石多。上午拍神光穿洞，下午2点后拍逆光夕阳"},"baihe-wan":{"drive":"双井→东三环→北三环→京承高速→怀柔(15出口)→111国道→琉璃庙镇→白河湾，全程约1.5h","transit":"地铁10号线→东直门→916→怀柔→936支→前安岭站→步行/打车至白河湾，全程约2.5h","time":"1-2天。漂流2h，露营可住一晚，越野体验半天","overnight":"建议过夜。青石岭星空露营地可露营烧烤，八宝堂村有农家乐","tips":"《让子弹飞》取景地。漂流约8公里用时1h，雨季水量最大。越野路线22公里，河滩路+盘山路。夏季可玩水、捉鱼、烧烤。注意防晒和防蚊虫"},"baili-shanshui":{"drive":"双井→北三环→京藏高速→延庆→昌赤路→滦赤路→千家店镇，全程约2h","transit":"德胜门→919快→延庆南菜园→Y12/Y13→百里山水画廊，全程约2.5h","time":"1-2天。56公里景观大道，沿途景点分散，建议自驾或骑行","overnight":"建议过夜。沿途有百里乡居等网红民宿，需提前预订","tips":"强烈推荐自驾！路线：乾沟→硅化木公园→乌龙峡谷→滴水壶→四季花海。滴水壶门票25元，有溶洞和水帘洞。秋季10月中旬红叶最美。沿途新增6个充电站，新能源车放心前往"},"guyaju":{"drive":"双井→北三环→京藏高速→康庄出口(西线)/营城子出口(东线)→古龙路→古崖居，全程约1.5h","transit":"德胜门→919快→延庆南菜园→Y40路/920路→古崖居路口站，全程约2h","time":"半天。景区游览2-3h，走一圈约3公里","overnight":"可不过夜。附近玉鼎山庄、孔乙己阳光山谷酒店可住","tips":"门票40-54元，学生半价。我国规模最大崖居遗址，117个洞穴，被誉为“中华第一迷宫”。重点看“奚王府”三居室。需攀爬木制云梯，穿旅游鞋。Y40路是定班车，提前查好时刻表"},"yeya-lake":{"drive":"双井→北三环→京藏高速→康庄出口→康张路→康西路→野鸭湖，全程约1.5h","transit":"德胜门→919快→延庆南菜园→921路→野鸭湖，全程约2h","time":"半天到1天。环湖4.6km，自然湿地10km，荷花路线3.5km","overnight":"可不过野鸭湖周边有农家乐和民宿","tips":"门票50元，学生25元，60岁以上免费。北京最大湿地公园，鸟类303种。3-5月、9-11月是观鸟最佳季节。禁止无人机、风筝、扩音设备。穿贴近自然的服装，不要鲜艳颜色。风大，多穿点"},"kangxi-grassland":{"drive":"双井→北三环→京藏高速→康庄出口→西康路→康西草原，全程约1.5h","transit":"德胜门→919路支线快车→大王庄站→步行至康西草原，全程约2h","time":"1天。骑马1-2h，篝火晚会晚上举办","overnight":"建议过夜。可住蒙古包或大王庄村农家院，体验篝火晚会","tips":"门票30元，骑马30元/小时。京都第一大草原，3.2万亩草场。夏季绿草如茵，可骑马、骑骆驼、划草。有专业马术教练。夜晚篝火晚会+KTV。年平均气温8.4℃，夏季也要带外套"},"yinhudong":{"drive":"双井→西三环→京昆高速→房山出口→银狐洞路→银狐洞，全程约1h","transit":"地铁10号线→六里桥→836路→房山→换乘房山线公交→银狐洞，全程约2h","time":"半天。洞内游览2-3h，含地下暗河划船","overnight":"可不过夜。洞外有农家乐","tips":"华北地区最大的水旱一体溶洞，地下暗河长逾千米可划船。洞内恒温18℃，四季皆宜。钟乳石千姿百态，银狐状奇石惟妙惟肖。穿防滑鞋，洞内地面湿滑。建议带薄外套"}};
+      const reviewsData = {"dongling-shan":[{"content":"东灵山真的能算上新手友好，作为北京海拔2303米的屋脊，徒步新手也能驾驭的山野盛宴。","source":"小红书用户@番茄不是菜🍅","url":"https://www.xiaohongshu.com/search_result?keyword=东灵山徒步攻略"},{"content":"登顶时，京西的山景在脚下铺展，成就感拉满！高山草甸+云海+日出，绝对值回票价。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=东灵山云海日出"},{"content":"导航江水河村，停好车后步行上山，全程约4小时往返。7-9月金莲花盛开，野花遍地。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=东灵山路线"}],"guanting-reservoir":[{"content":"官厅水库的夕阳太美了！风车+落日+湖面，随手一拍就是大片。自驾环湖路体验极佳。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=官厅水库日落"},{"content":"北京最大水库，周末露营的人很多。建议避开周末，工作日来几乎包场。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=官厅水库露营"}],"jiankou-greatwall":[{"content":"箭扣长城是北京最野的长城，正北楼、天梯、鹰飞倒仰，每一步都是震撼。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=箭扣长城徒步"},{"content":"野长城没有护栏，很刺激但也要注意安全。建议穿登山鞋，带登山杖。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=箭扣长城攻略"}],"yudu-shan":[{"content":"玉渡山是北京的后花园，高山草甸+湖泊+森林，适合露营野餐。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=玉渡山露营"},{"content":"可以自驾开到草甸停车场，不用爬山就能享受美景。夏季避暑首选。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=玉渡山自驾"}],"cuandixia":[{"content":"爨底下村的明清古民居保存得太好了，「爨」字造型村落很出片。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=爨底下村"},{"content":"门票35元含一线天、柏峪。建议住一晚，清晨的古村特别宁静。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=爨底下村民宿"}],"shidu":[{"content":"十渡漂流是夏天玩水的天花板！拒马河蜿蜒百里，竹筏在水面上漂流，有桂林的感觉。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=十渡漂流攻略"},{"content":"蹦极260元每人，拍照和证书额外收费。十八渡漂流最刺激，3.8公里落差188米。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=十渡蹦极"}],"jinhai-lake":[{"content":"金海湖被誉为京郊小瑞士，碧波岛欧式草坪出片，游船+快艇体验很棒。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=金海湖碧波岛"},{"content":"秋季采摘平谷大桃，环湖骑行道风景绝美。建议早出发，周末人多。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=金海湖骑行"}],"xiangshan":[{"content":"香山红叶确实美，但10月中下旬人真的太多了。建议工作日或者早7点前到。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=香山红叶"},{"content":"缆车可以节省体力，碧云寺、卧佛寺可联游。秋季是北京必打卡景点。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=香山攻略"}],"fenghuangling":[{"content":"凤凰岭「京西小黄山」，北线天梯最刺激，南线龙泉寺最平缓。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=凤凰岭天梯"},{"content":"秋季红叶很美，门票25元。建议穿防滑鞋，部分路段较陡。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=凤凰岭红叶"}],"baihua-shan":[{"content":"百花山高山草甸夏季野花遍地，是北京第三高峰。自驾可开到半山腰。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=百花山草甸"},{"content":"与白草畔是同一座山，可从门头沟或房山两侧登山。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=百花山徒步"}],"haiduo-shan":[{"content":"海坨山是北京十大经典徒步路线之一，高山草甸、云海、日出绝美。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=海坨山露营"},{"content":"需提前下载轨迹，部分路段无信号。注意防火，不可带火种上山。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=海坨山徒步"}],"beiling-shan":[{"content":"白龙潭山水相依，秋季层林尽染。可与黑龙潭联游。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=白龙潭北京"}],"yunmeng-shan":[{"content":"云蒙山「京郊小黄山」，奇峰怪石、瀑布溪流。建议缆车上下。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=云蒙山缆车"}],"miyun-reservoir":[{"content":"密云水库大坝可远眺，但不能进入核心区。周边水库鱼、柴锅炖是特色。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=密云水库美食"}],"longqing-canyon":[{"content":"龙庆峡「塞外小三峡」，坐船游览峡谷是核心体验。冬季冰灯节非常壮观。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=龙庆峡冰灯"}],"pofengling":[{"content":"坡峰岭北京最美红叶观赏地之一，黄栌漫山。秋季（10月中下旬）最美。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=坡峰岭红叶"},{"content":"建议工作日前往。门票30-50元（淡旺季不同）。可搭配云居寺联游。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=坡峰岭攻略"}],"tanzhe-si":[{"content":"潭柘寺北京最古老寺庙（1700年），千年银杏秋季金黄。帝王树、毗卢阁是经典机位。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=潭柘寺帝王树"}],"shihua-cave":[{"content":"石花洞中国四大名洞之一，地下艺术殿堂。洞内恒温13℃，夏天需带薄外套。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=石花洞钟乳石"}],"badaling":[{"content":"八达岭长城最知名的长城段，设施最完善。但人也最多，建议早8点前到达。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=八达岭长城攻略"}],"mutianyu-greatwall":[{"content":"慕田峪长城比八达岭人少太多了。八达岭是长城界的王府井，慕田峪才是真正该来的地方。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=慕田峪长城"},{"content":"14-20号敌楼是精华段，植被覆盖率90%，四季皆景。建议缆车上+滑道下。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=慕田峪滑道"}],"jindong-canyon":[{"content":"京东大峡谷北京最大峡谷，集高山、峡谷、瀑布、深潭于一体。夏季清凉。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=京东大峡谷攻略"}],"shilinxia":[{"content":"石林峡七彩池+UFO玻璃观景台是网红打卡点。建议缆车上山，步行下山。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=石林峡UFO观景台"},{"content":"门票78元，观景台另收费。周末人多建议早到。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=石林峡攻略"}],"labagoumen":[{"content":"喇叭沟门是北京唯一原始次生林，有白桦林、杜鹃花海。海拔较高，夏季凉爽。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=喇叭沟门白桦林"},{"content":"建议穿长衣长裤防蚊虫。门票40元。秋季看白桦和红叶。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=喇叭沟门红叶"}],"xishan":[{"content":"西山森林公园与香山相邻但人更少，鬼笑石是网红日落观景点。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=西山鬼笑石"}],"yongding-river":[{"content":"永定河北京母亲河，沿河绿道适合骑行。可搭配卢沟桥、宛平城联游。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=永定河骑行"}],"miaofeng-shan":[{"content":"妙峰山京西道教名山，碧霞元君庙香火鼎盛。春季玫瑰花开（5月），秋季红叶层林尽染。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=妙峰山玫瑰花"}],"qingliang-valley":[{"content":"清凉谷夏季避暑圣地，瀑布群壮观。水晶长城、玻璃天桥是网红项目。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=清凉谷玻璃天桥"}],"zhenbiancheng":[{"content":"镇边城明代边防古城，保存完好。免费参观，适合拍照。可搭配长峪城联游。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=镇边城长城"}],"xiaowutai":[{"content":"小五台山河北最高峰，华北屋脊。高山草甸、金莲花海、云海绝美。需办理登山许可证。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=小五台山徒步"}],"wulingshan":[{"content":"雾灵山华北最高峰之一，有「北方黄山」之称。夏季避暑，秋季彩林。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=雾灵山云海"}],"gubei-water town":[{"content":"古北水镇北京最美水镇，夜景无敌。建议下午到达，晚上夜游司马台长城。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=古北水镇夜景"}],"simatai-greatwall":[{"content":"司马台长城是全国唯一开放夜游的长城，夜景绝美。需提前在官方渠道预约。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=司马台夜游"},{"content":"门票40元，夜游票160元。建议白天+夜游组合。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=司马台长城门票"}],"baiwang-shan":[{"content":"百望山距市区最近的森林公园，被称为「城市氧源」。难度极低，适合亲子。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=百望山亲子"}],"yingshan":[{"content":"银山塔林金代塔林遗址，北京最古老的塔群。秋季红叶与塔林同框是经典画面。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=银山塔林红叶"}],"tianmo-desert":[{"content":"天漠离北京最近的沙漠，有「京城小撒哈拉」之称。可滑沙、骑骆驼、越野。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=天漠滑沙"}],"huangsongyu":[{"content":"黄松峪石林峡+湖洞水+飞龙谷，秋季采摘苹果、柿子。可搭配金海湖联游。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=黄松峪采摘"}],"aolinpike-senlin":[{"content":"奥林匹克森林公园北京最大城市公园，适合跑步、骑行、野餐。秋季银杏最美。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=奥森跑步"}],"wenyuhe-gongyuan":[{"content":"温榆河公园北京最大城市绿肺，春季油菜花海（4-5月）是网红打卡点。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=温榆河油菜花"}],"jiangfu-gongyuan":[{"content":"将府公园北京最美铁道公园，废弃铁路+二月兰花海是经典机位。春季最美。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=将府公园二月兰"}],"dongxiaokou-senlin":[{"content":"东小口森林公园北京北部最大郊野公园，森林覆盖率高。秋季彩林很美。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=东小口彩林"}],"yongdinghe-senlin":[{"content":"永定河森林公园沿河绿道适合骑行，春季花开、秋季芦苇金黄。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=永定河森林公园骑行"}],"nanyuan-shidi":[{"content":"南苑湿地公园北京城南最大湿地公园，观鸟胜地。春秋候鸟迁徙时最佳。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=南苑湿地观鸟"}],"yanqi-xizhan":[{"content":"雁栖湖核心景区APEC会址所在地。日出东方酒店是地标。P5停车场离西山步道最近。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=雁栖湖日出东方"}],"wucai-qianshan":[{"content":"五彩浅山顺义浅山步道，春季赏花、秋季红叶。步道设施完善，适合全家。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=五彩浅山红叶"}],"dayunhe-senlin":[{"content":"大运河森林公园京杭大运河北京段，沿河绿道适合骑行。夏季荷花盛开。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=大运河荷花"}],"lvxin-senlin":[{"content":"城市绿心森林公园通州城市副中心绿肺，适合骑行、跑步、亲子。秋季彩林很美。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=绿心公园彩林"}],"yougu-shentan":[{"content":"幽谷神潭门票才30元，在北京来说很划得来了。飞瀑真的很震撼，两条瀑布夹一潭，拍照超出片！","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=幽谷神潭攻略"},{"content":"很适合带孩子来玩，夏天可以戏水，小朋友们趟水、捞鱼、拿着水枪喷水，玩得不亦乐乎。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=幽谷神潭亲子"}],"yunmeng-xia":[{"content":"云蒙峡是京北的神仙小众峡谷，有山有水，人还少。十里画廊名不虚传，两侧雄崖壁仞，碧水游鱼。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=云蒙峡徒步"},{"content":"从水堡子村西头进，沿峡谷北侧西行入山，约830米后上爬两座石台，风景绝美。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=云蒙峡穿越"}],"qingliang-gu":[{"content":"清凉谷的玻璃天桥太刺激了！全透明桥面+碎玻璃声效，恐高党慎入但风景真的绝。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=清凉谷玻璃天桥"},{"content":"高山滑水3000米滑道、200米落差，全程尖叫不断！建议穿泳衣+带防水袋。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=清凉谷漂流"}],"tianmen-shan":[{"content":"天门山的“北京之眼”太震撼了！13公里环穿下来，每一步都是治愈与惊喜。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=天门山北京之眼"},{"content":"废弃景区免费进，石阶+野路结合，适合新手进阶。记得带足水，全程无补给。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=天门山徒步"}],"baihe-wan":[{"content":"白河湾是《让子弹飞》取景地，河谷风光绝美。漂流8公里很刺激，露营烧烤体验很棒。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=白河湾露营"},{"content":"青石岭星空露营地可以烧烤、用卡式炉、过夜。晚上看星星超浪漫！","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=白河湾星空露营"}],"baili-shanshui":[{"content":"百里山水画廊的秋色美到让人窒息！漫山遍野的红黄交织，随手一拍都是神仙级壁纸。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=百里山水画廊红叶"},{"content":"滴水壶简直是浓缩版九寨沟！金黄树木+徽派建筑+蓝绿湖水，门票才25元超值。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=百里山水画廊滴水壶"}],"guyaju":[{"content":"古崖居真的太神秘了！117个洞穴凿在崖壁上，有石灯台、石炕、石灶台，古人太厉害了。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=古崖居遗址"},{"content":"三居室山洞很有意思，奚王府建造得相当精巧。站在山顶还能看见官厅水库。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=古崖居攻略"}],"yeya-lake":[{"content":"野鸭湖的芦苇荡太美了！秋天金黄一片，站在望湖楼上俯拍，大片大片的芦苇不要太美。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=野鸭湖芦苇"},{"content":"北京最大湿地公园，鸟类303种。3-5月和9-11月是观鸟最佳季节，记得带望远镜。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=野鸭湖观鸟"}],"kangxi-grassland":[{"content":"康西草原骑马太爽了！在草原上奔驰的感觉真的不一样，30元/小时性价比很高。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=康西草原骑马"},{"content":"晚上篝火晚会超有氛围，蒙古包住宿体验很特别。烤全羊和手扒肉必吃！","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=康西草原篝火"}],"yinhudong":[{"content":"银狐洞的地下暗河可以划船游览，体验太独特了！水旱一体的溶洞很少见。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=银狐洞暗河"},{"content":"洞内恒温18℃，夏天进去特别凉快。银狐状钟乳石真的惟妙惟肖，值得一看。","source":"小红书用户","url":"https://www.xiaohongshu.com/search_result?keyword=银狐洞攻略"}]};
+      const locationNames = {"dongling-shan":"东灵山","guanting-reservoir":"官厅水库","jiankou-greatwall":"箭扣长城","yudu-shan":"玉渡山","cuandixia":"爨底下村","shidu":"十渡","jinhai-lake":"金海湖","xiangshan":"香山","fenghuangling":"凤凰岭","baihua-shan":"百花山","haiduo-shan":"海坨山","beiling-shan":"北灵山","yunmeng-shan":"云蒙山","miyun-reservoir":"密云水库","longqing-canyon":"龙庆峡","pofengling":"坡峰岭","tanzhe-si":"潭柘寺","shihua-cave":"石花洞","badaling":"八达岭长城","mutianyu-greatwall":"慕田峪长城","jindong-canyon":"京东大峡谷","shilinxia":"石林峡","labagoumen":"喇叭沟门","xishan":"西山森林公园","yongding-river":"永定河峡谷","miaofeng-shan":"妙峰山","qingliang-valley":"清凉峡","zhenbiancheng":"镇边城","xiaowutai":"小五台山","wulingshan":"雾灵山","gubei-water town":"古北水镇","simatai-greatwall":"司马台长城","baiwang-shan":"百望山","yingshan":"银山塔林","tianmo-desert":"天漠","huangsongyu":"黄松峪","aolinpike-senlin":"奥林匹克森林公园","wenyuhe-gongyuan":"北京温榆河公园","jiangfu-gongyuan":"将府公园","dongxiaokou-senlin":"东小口森林公园","yongdinghe-senlin":"永定河休闲森林公园","nanyuan-shidi":"南苑森林湿地公园","yanqi-xizhan":"雁栖湖西山栈道","wucai-qianshan":"舞彩浅山","dayunhe-senlin":"大运河森林公园","lvxin-senlin":"城市绿心森林公园","yougu-shentan":"幽谷神潭","yunmeng-xia":"云蒙峡","qingliang-gu":"清凉谷","tianmen-shan":"天门山","baihe-wan":"白河湾","baili-shanshui":"百里山水画廊","guyaju":"古崖居","yeya-lake":"野鸭湖","kangxi-grassland":"康西草原","yinhudong":"银狐洞"};
+      const locationZones = {"dongling-shan":"w","guanting-reservoir":"nw","jiankou-greatwall":"n","yudu-shan":"nw","cuandixia":"w","shidu":"sw","jinhai-lake":"ne","xiangshan":"nw","fenghuangling":"nw","baihua-shan":"w","haiduo-shan":"nw","beiling-shan":"w","yunmeng-shan":"ne","miyun-reservoir":"ne","longqing-canyon":"nw","pofengling":"sw","tanzhe-si":"w","shihua-cave":"sw","badaling":"nw","mutianyu-greatwall":"n","jindong-canyon":"ne","shilinxia":"ne","labagoumen":"n","xishan":"nw","yongding-river":"w","miaofeng-shan":"w","qingliang-valley":"ne","zhenbiancheng":"w","xiaowutai":"w","wulingshan":"ne","gubei-water town":"ne","simatai-greatwall":"ne","baiwang-shan":"nw","yingshan":"n","tianmo-desert":"nw","huangsongyu":"ne","aolinpike-senlin":"c","wenyuhe-gongyuan":"ne","jiangfu-gongyuan":"ne","dongxiaokou-senlin":"n","yongdinghe-senlin":"w","nanyuan-shidi":"s","yanqi-xizhan":"n","wucai-qianshan":"ne","dayunhe-senlin":"se","lvxin-senlin":"se","yougu-shentan":"n","yunmeng-xia":"ne","qingliang-gu":"ne","tianmen-shan":"w","baihe-wan":"n","baili-shanshui":"nw","guyaju":"nw","yeya-lake":"nw","kangxi-grassland":"nw","yinhudong":"sw"};
+      const zoneNames = {"nw":"西北","n":"正北","ne":"东北","w":"西","sw":"西南","e":"东","se":"东南","c":"市中心","s":"南"};
+      const zoneOrder = ['nw','n','ne','w','sw','e','se','c','s'];
+
+      function boOpenGuide() {
+        document.getElementById('bo-guide-panel').classList.add('open');
+        document.getElementById('bo-guide-overlay').classList.add('open');
+        boRenderList();
+      }
+      function boCloseGuide() {
+        document.getElementById('bo-guide-panel').classList.remove('open');
+        document.getElementById('bo-guide-overlay').classList.remove('open');
+      }
+      function boRenderList(filter) {
+        var listEl = document.getElementById('bo-guide-list');
+        var detailEl = document.getElementById('bo-guide-detail');
+        listEl.style.display = 'block';
+        detailEl.classList.remove('active');
+        var ids = Object.keys(guidesData);
+        if (filter) {
+          ids = ids.filter(function(id) {
+            return (locationNames[id] || id).indexOf(filter) >= 0 || id.indexOf(filter) >= 0;
+          });
+        }
+        var byZone = {};
+        for (var i = 0; i < ids.length; i++) {
+          var zone = locationZones[ids[i]] || 'other';
+          if (!byZone[zone]) byZone[zone] = [];
+          byZone[zone].push(ids[i]);
+        }
+        var html = '';
+        for (var zi = 0; zi < zoneOrder.length; zi++) {
+          var zone = zoneOrder[zi];
+          if (!byZone[zone]) continue;
+          html += '<div class="bo-guide-zone"><div class="bo-guide-zone-title">' + (zoneNames[zone] || zone) + '</div>';
+          for (var ji = 0; ji < byZone[zone].length; ji++) {
+            var id = byZone[zone][ji];
+            html += '<div class="bo-guide-item" onclick="boShowDetail(\'' + id + '\')">' + (locationNames[id] || id) + '</div>';
+          }
+          html += '</div>';
+        }
+        if (ids.length === 0) {
+          html = '<div style="padding:40px;text-align:center;color:#9ca3af">未找到匹配地点</div>';
+        }
+        listEl.innerHTML = html;
+      }
+      function boSearchGuide(value) {
+        boRenderList(value.trim());
+      }
+      function boShowDetail(id) {
+        var listEl = document.getElementById('bo-guide-list');
+        var detailEl = document.getElementById('bo-guide-detail');
+        listEl.style.display = 'none';
+        detailEl.classList.add('active');
+        var guide = guidesData[id];
+        var reviews = reviewsData[id] || [];
+        var name = locationNames[id] || id;
+        var html = '';
+        html += '<div class="bo-guide-back" onclick="boBackToList()"><span>&larr;</span> 返回列表</div>';
+        html += '<h4>' + name + '</h4>';
+        if (guide) {
+          if (guide.drive) html += '<div class="bo-guide-section"><div class="bo-guide-section-title">自驾路线</div><div class="bo-guide-section-content">' + guide.drive + '</div></div>';
+          if (guide.transit) html += '<div class="bo-guide-section"><div class="bo-guide-section-title">公共交通</div><div class="bo-guide-section-content">' + guide.transit + '</div></div>';
+          if (guide.time) html += '<div class="bo-guide-section"><div class="bo-guide-section-title">建议时间</div><div class="bo-guide-section-content">' + guide.time + '</div></div>';
+          if (guide.overnight) html += '<div class="bo-guide-section"><div class="bo-guide-section-title">过夜建议</div><div class="bo-guide-section-content">' + guide.overnight + '</div></div>';
+          if (guide.tips) html += '<div class="bo-guide-section"><div class="bo-guide-section-title">实用贴士</div><div class="bo-guide-section-content">' + guide.tips + '</div></div>';
+        }
+        if (reviews.length > 0) {
+          html += '<div class="bo-guide-section"><div class="bo-guide-section-title">用户评价</div>';
+          for (var ri = 0; ri < reviews.length; ri++) {
+            var r = reviews[ri];
+            html += '<div class="bo-review-item"><div class="bo-review-text">' + r.content + '</div><div class="bo-review-source">' + r.source + (r.url ? ' · <a href="' + r.url + '" target="_blank">查看原文</a>' : '') + '</div></div>';
+          }
+          html += '</div>';
+        }
+        detailEl.innerHTML = html;
+      }
+      function boBackToList() {
+        document.getElementById('bo-guide-list').style.display = 'block';
+        document.getElementById('bo-guide-detail').classList.remove('active');
+      }
+    })();
+    </script>
   </body>
 </html>
