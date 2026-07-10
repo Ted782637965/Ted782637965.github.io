@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="./assets/index-Cb8px4Af.js?v=6"></script>
+    <script type="module" crossorigin src="./assets/index-Cb8px4Af.js?v=7"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-BOXCF9Xa.css">
   </head>
   <body>
@@ -31,7 +31,6 @@ function tryInject(){
   if(!id||!D[id]){ injectedId=''; return; }
   if(injectedId===id)return;
   
-  // Find h3 with 简介 text
   const allH3=document.querySelectorAll('h3');
   let targetP=null;
   for(const h of allH3){
@@ -44,7 +43,6 @@ function tryInject(){
     }
   }
   
-  // Fallback: section with h3 containing 简介
   if(!targetP){
     const sections=document.querySelectorAll('section');
     for(const s of sections){
@@ -56,7 +54,6 @@ function tryInject(){
     }
   }
   
-  // Fallback: any p inside a section after an h3 with 简介
   if(!targetP){
     const sections=document.querySelectorAll('section');
     for(const s of sections){
@@ -70,7 +67,6 @@ function tryInject(){
   
   if(!targetP)return;
   
-  // Check if already injected
   const parent=targetP.parentElement;
   if(parent&&parent.querySelector('.bo-guide-inserted')){ injectedId=id; return; }
   
@@ -103,7 +99,6 @@ function startMonitoring(){
   setTimeout(function(){if(intervalId){clearInterval(intervalId); intervalId=null;}},30000);
 }
 
-// Listen for URL changes
 const _push=history.pushState;
 history.pushState=function(){
   _push.apply(this,arguments);
@@ -116,21 +111,22 @@ history.replaceState=function(){
 };
 window.addEventListener('popstate',startMonitoring);
 
-// MutationObserver to detect SPA navigation
 const observer=new MutationObserver(function(){
   if(!intervalId)startMonitoring();
 });
-if(document.body){
-  observer.observe(document.body,{childList:true,subtree:true});
-} else {
-  document.addEventListener('DOMContentLoaded',function(){
+
+function init(){
+  if(document.body){
     observer.observe(document.body,{childList:true,subtree:true});
-    startMonitoring();
-  });
+  }
+  startMonitoring();
 }
 
-// Start immediately
-startMonitoring();
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',init);
+} else {
+  init();
+}
 })();
 </script>
   </body>
